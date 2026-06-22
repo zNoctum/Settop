@@ -18,7 +18,7 @@ def P : Cond := {
     intro a b c h hc
     rw [mem_U_iff] at hc
     rcases hc with ⟨k,hc⟩
-    have : c.val = b + k * a := by grind
+    have : c = b + k * a := by grind
     rw [this, Int.gcd_add_mul_right_right]
     exact h
   h2 := by
@@ -26,7 +26,7 @@ def P : Cond := {
     exact h
 }
 
-instance : TopologicalSpace ℤ+ := generateFrom (B P)
+instance : TopologicalSpace ℤ := generateFrom (B P)
 
 theorem basis : IsTopologicalBasis (B P) := by
   refine { exists_subset_inter := ?_, sUnion_eq := ?_, eq_generateFrom := rfl }
@@ -35,22 +35,21 @@ theorem basis : IsTopologicalBasis (B P) := by
     rcases hmemO with ⟨a,b, abgcd, heqO⟩
     rcases hmemO' with ⟨c,d, cdgcd, heqO'⟩
     rw [heqO, heqO'] at hqmem ⊢
-    use U (PInt.lcm a c) q
+    use U (a.lcm c) q
     simp only [inter_U_eq_U_lcm hqmem, subset_refl, and_true]
-    refine And.intro ?_ (mem_U_self (a.lcm c) q)
+    apply And.intro _ (mem_U_self (a.lcm c) q)
     apply mem_B
-
-    simp only [PInt.lcm, Int.lcm]
-    refine Nat.Coprime.coprime_div_left ?_ (by simp)
+    simp only [Int.lcm]
+    apply Nat.Coprime.coprime_div_left _ (by simp)
     apply Nat.coprime_mul_iff_left.mpr
     refine And.intro
       (gcd_eq_one_of_mem_U abgcd (Set.mem_of_mem_inter_left hqmem))
       (gcd_eq_one_of_mem_U cdgcd (Set.mem_of_mem_inter_right hqmem))
   · apply Set.sUnion_eq_univ_iff.mpr
     intro x
-    use U ⟨1, by simp⟩ x
-    refine And.intro ?_ (mem_U_self ⟨1, by simp⟩ x)
+    use U 1 x
+    apply And.intro _ (mem_U_self 1 x)
     apply mem_B
     exact Int.gcd_one_left ↑x
 
-theorem connected : PreconnectedSpace ℤ+ := preconnectedSpace_of_isTopologicalBasis basis
+theorem connected : PreconnectedSpace ℤ := preconnectedSpace_of_isTopologicalBasis basis
