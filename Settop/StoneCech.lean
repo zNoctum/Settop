@@ -30,14 +30,13 @@ theorem stone_cech_preconnected_iff {α : Type*} [TopologicalSpace α] :
       exact Set.mem_univ _
 
 section CompactInt
-instance : TopologicalSpace ℤ+ := ⊥
+instance : TopologicalSpace ℤ := ⊥
 
-theorem conn1 : ¬PreconnectedSpace (StoneCech ℤ+) := by
+theorem conn1 : ¬PreconnectedSpace (StoneCech ℤ) := by
   intro h
-  haveI : DiscreteTopology ℤ+ := ⟨rfl⟩
+  haveI : DiscreteTopology ℤ := ⟨rfl⟩
   apply absurd (stone_cech_preconnected_iff.mpr h |>.trivial_of_discrete)
   intro h
-  have : (Subtype.mk 1 (by simp) : ℤ+) ≠ Subtype.mk 2 (by simp) := by grind
-  exact this (h.allEq _ _)
+  exact (by grind : (0 : ℤ) ≠ 1) (h.allEq 0 1)
 
 end CompactInt

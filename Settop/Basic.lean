@@ -50,6 +50,6 @@ theorem basis : IsTopologicalBasis (B P) := by
     use U 1 x
     apply And.intro _ (mem_U_self 1 x)
     apply mem_B
-    exact Int.gcd_one_left ↑x
+    exact Int.gcd_one_left x
 
 theorem connected : PreconnectedSpace ℤ := preconnectedSpace_of_isTopologicalBasis basis

@@ -73,10 +73,8 @@ theorem squarefree_lcm {a b : ℕ} (ha : Squarefree a) (hb : Squarefree b) :
     have h2 : a.gcd (b / a.gcd b) ∣ b := h1.trans (Nat.div_dvd_of_dvd hg)
     have h3 : a.gcd (b / a.gcd b) ∣ a.gcd b :=
       Nat.dvd_gcd (Nat.gcd_dvd_left _ _) h2
-    have h4 : a.gcd (b / a.gcd b) * a.gcd (b / a.gcd b) ∣ b := by
-      have := Nat.mul_dvd_mul h3 h1
-      rwa [Nat.mul_div_cancel' hg] at this
-    exact Nat.isUnit_iff.mp (hb _ h4)
+    apply Nat.isUnit_iff.mp (hb _ _)
+    simpa [Nat.mul_div_cancel' hg] using Nat.mul_dvd_mul h3 h1
 
 theorem basis : IsTopologicalBasis (B P) := by
   refine { exists_subset_inter := ?_, sUnion_eq := ?_, eq_generateFrom := rfl }
