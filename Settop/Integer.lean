@@ -32,8 +32,7 @@ theorem mem_U_iff {a b x : ℤ} : x ∈ U a b ↔ (a : ℤ) ∣ x - b := by
 
 theorem mem_U_self (a b : ℤ) : b ∈ U a b := by
   apply mem_U_iff.mpr
-  use 0
-  simp
+  simp [sub_self]
 
 theorem gcd_eq_one_of_mem_U {a b q : ℤ} (hc : Int.gcd a b = 1) (h : q ∈ U a b) :
     Int.gcd a q = 1 := by
