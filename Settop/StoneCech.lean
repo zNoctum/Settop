@@ -11,7 +11,7 @@ import Mathlib.Topology.Constructions
 open TopologicalSpace Topology Set
 
 abbrev StoneCech' (α : Type u) [TopologicalSpace α] :=
-  ∀ f : C(α, unitInterval), closure (range f)
+  ∀ f : C(α, unitInterval), unitInterval
 
 variable {α : Type u} [TopologicalSpace α]
 
@@ -19,97 +19,82 @@ theorem mem_closure_range (f : C(α, unitInterval)) (x : α) : f x ∈ closure (
   apply subset_closure
   exact mem_range_self x
 
-def unit (x : α) : StoneCech' α := fun f => ⟨f x, mem_closure_range f x⟩
+def unit (x : α) : StoneCech' α := fun f => f x
 
 theorem continuous_unit : Continuous (unit : α → StoneCech' α) := by
   apply continuous_pi
   intro f
-  refine Continuous.subtype_mk f.continuous (mem_closure_range f)
+  simp [unit, ContinuousMap.continuous f]
 
-variable [CompletelyRegularSpace α] [T2Space α]
+variable [CompletelyRegularSpace α]
+
+theorem exists_seperating_index {x : α} {U : Set α} (hU : IsOpen U) (hx : x ∈ U) :
+    ∃ f : C(α, unitInterval), f x = 0 ∧ EqOn f 1 Uᶜ := by
+  have ⟨f, hf, hfx, hfUc⟩ := CompletelyRegularSpace.completely_regular_isOpen x U hU hx
+  use { toFun := f, continuous_toFun := hf }
+  simpa using And.intro hfx hfUc
+
+theorem unit_isInducing : IsInducing (unit : α → StoneCech' α) := by
+  refine (isInducing_iff unit).mpr ?_
+  refine Eq.symm (TopologicalSpace.ext ?_)
+  ext O
+  constructor
+  · rw [isOpen_induced_iff]
+    rintro ⟨U, hU, pre⟩
+    rw [← pre]
+    exact Continuous.isOpen_preimage continuous_unit U hU
+  · intro hO
+    apply (@isOpen_iff_forall_mem_open _ (induced unit Pi.topologicalSpace) O).mpr
+    intro x hx
+    have ⟨f, hfx, hfOc⟩ := exists_seperating_index hO hx
+    use f ⁻¹' (Iio 1)
+    refine ⟨?_,?_,?_⟩
+    · refine preimage_subset_iff.mpr ?_
+      intro y hy
+      by_contra!
+      have : f y = 1 := by
+        simpa using hfOc this
+      rw [this] at hy
+      grind
+    · apply isOpen_induced_iff.mpr
+      use (Function.eval f) ⁻¹' Iio 1
+      constructor
+      · refine Continuous.isOpen_preimage ?_ (Iio 1) ?_
+        · exact continuous_apply f
+        · exact isOpen_Iio
+      · exact Eq.symm (preimage_congr (congrFun rfl))
+    · simp [hfx]
+
+variable [T2Space α]
 
 theorem unit_Injective : Function.Injective (unit : α → StoneCech' α) := by
   intro x y h
   by_contra!
   obtain ⟨U,_,hU,_,hmem,_⟩ := t2_separation this
-  have hnmem : x ∉ Uᶜ := by grind
-  have hcl : IsClosed Uᶜ := by simp [hU]
-  obtain ⟨f, hf, hfx, hfK⟩ := CompletelyRegularSpace.completely_regular x Uᶜ hcl hnmem
-  let f' : C(α, unitInterval) := { toFun := f, continuous_toFun := hf }
+  have ⟨f, hfx, hfUc⟩ := exists_seperating_index hU hmem
   unfold unit at h
-  have hx : f' x = 0 := by simp [f', hfx]
-  have hy : f' y = 1 := by
-    have : y ∈ Uᶜ := by grind
-    exact
-      Eq.symm
-        ((fun {i j} ↦ unitInterval.symm_inj.mp)
-          (congrArg unitInterval.symm (id (EqOn.symm hfK) this)))
-  have := congr_fun h f' |> Subtype.mk_eq_mk.mp
-  rw [hx,hy] at this
+  have hx : f x = 0 := by simp [hfx]
+  have hy : f y = 1 := by
+    simpa using hfUc (by grind)
+  have := hx ▸ hy ▸ congr_fun h f
   exact (by simp : (0 : unitInterval) ≠ 1) this
 
-theorem range_unit_isOpen : IsOpen (range (unit : α → StoneCech' α)) := by
-  refine isOpen_pi_iff.mpr ?_
-  intro v hmem
-  use {}, fun f => univ
-  constructor
-  · simp
-  · simp
-    sorry
-
-
-theorem unit_isOpenMap : IsOpenMap (unit : α → StoneCech' α) := by
-  intro U hU
-  refine isOpen_iff_forall_mem_open.mpr ?_
-  intro v h
-  have ⟨x, xeq⟩ : ∃x ∈ U, v = unit x := by grind
-  have hcl : IsClosed Uᶜ := by simp [hU]
-  have hnmem : x ∉ Uᶜ := by grind
-  have ⟨f, hf, hfx, hfUc⟩ := CompletelyRegularSpace.completely_regular x Uᶜ hcl hnmem
-  let f' : C(α, unitInterval) := { toFun := f, continuous_toFun := hf }
-  rcases Set.eq_empty_or_nonempty Uᶜ with hemp | ⟨y, ymem⟩
-  · have : U = univ := compl_empty_iff.mp hemp
-    use unit '' univ
-    simp [this, image_eq_range (unit : α → StoneCech' α) univ]
-    constructor
-    · simp_all
-      sorry
-    · simp_all
-  have hy {y} (h : y ∉ U) : 1 = f' y := by
-    simpa using id (EqOn.symm hfUc) h
-  have : 1 ∈ closure (range f') := by
-    rw [hy ymem]
-    apply subset_closure
-    exact mem_range_self y
-  use (range unit) ∩ ((Function.eval f') ⁻¹' (Iio ⟨1, this⟩))
-  refine ⟨?_, ?_, ?_⟩
-  · intro w hmem
-    simp_all only [mem_image, isClosed_compl_iff, mem_compl_iff, not_true_eq_false,
-      not_false_eq_true, mem_inter_iff, mem_range, mem_preimage, Function.eval, mem_Iio]
-    rcases hmem with ⟨⟨y, eq⟩, lt⟩
-    rw [← eq] at lt ⊢
-    use y
-    apply And.intro _ rfl
-    by_contra!
-    simp only [unit, Subtype.mk_lt_mk] at lt
-    rw [hy this] at lt
-    exact lt.ne rfl
-  · refine ContinuousOn.isOpen_inter_preimage ?_ ?_ isOpen_Iio
-    · exact continuousOn_apply f' (range unit)
-    · exact range_unit_isOpen
-  · refine mem_inter ?_ ?_
-    · exact mem_range_of_mem_image unit U h
-    · refine mem_preimage.mpr ?_
-      simp_all [Function.eval, unit, f']
-
 theorem unit_isEmbedding : IsEmbedding (unit : α → StoneCech' α) := by
-  apply IsOpenEmbedding.isEmbedding
-  apply IsOpenEmbedding.of_continuous_injective_isOpenMap
-  · exact continuous_unit
-  · exact unit_Injective
-  · exact unit_isOpenMap
+  refine (isEmbedding_iff unit).mpr ?_
+  exact ⟨unit_isInducing, unit_Injective⟩
 
+section Extension
 
+variable {β : Type u} [TopologicalSpace β] [T2Space β]
+variable {g : α → β} (hg : Continuous g)
+
+def stoneCechExtend' [Nonempty α] : StoneCech' α → β := by
+  let F (x : StoneCech' α) : StoneCech' β := fun f => x { toFun := f ∘ g }
+  have hi := (unit_Injective (α := α)).leftInverse
+  exact hi.choose ∘ F
+  sorry
+
+end Extension
 /-
 theorem stone_cech_preconnected_iff {α : Type*} [TopologicalSpace α] :
     PreconnectedSpace α ↔ PreconnectedSpace (StoneCech α) := by

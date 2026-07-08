@@ -6,8 +6,6 @@ import Mathlib.Data.Nat.Prime.Defs
 import Mathlib.Data.Int.GCD
 import Mathlib.Topology.Connected.Clopen
 
-import Settop.PInt
-
 open Set
 
 def U (a b : ℤ) : Set ℤ := {x ∈ univ | a ∣ x - b }

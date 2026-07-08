@@ -6,7 +6,6 @@ import Mathlib.Data.Nat.Prime.Defs
 import Mathlib.Data.Int.GCD
 import Mathlib.Topology.Connected.Clopen
 
-import Settop.PInt
 import Settop.Integer
 
 open TopologicalSpace

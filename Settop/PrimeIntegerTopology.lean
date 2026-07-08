@@ -13,7 +13,6 @@ import Mathlib.RingTheory.Coprime.Lemmas
 import Mathlib.Data.Nat.Prime.Basic
 import Mathlib.Data.Int.NatAbs
 
-import Settop.PInt
 import Settop.Integer
 
 open TopologicalSpace Set
