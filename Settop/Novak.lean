@@ -13,18 +13,12 @@ import Mathlib.Data.Set.Prod
 import Mathlib.Topology.DiscreteSubset
 import Mathlib.Topology.Bases
 import Mathlib.Topology.NatEmbedding
+import Settop.Card
 
 open Cardinal Set Topology
 
-/-- The index family `𝓕` of the Novák construction: the countably infinite subsets of `βℕ`.
-Every such set is used exactly once as a stage of the transfinite recursion `pick`. -/
-abbrev Index := { s : Set (Ultrafilter ℕ) // s.Infinite ∧ s.Countable }
-
-instance {S : Index} : Infinite S.val := Infinite.to_subtype S.prop.1
-instance {S : Index} : Countable S.val := Countable.to_subtype S.prop.2
-
-/-- If `α` has the discrete topology then `βα` is projective in the category of compact Hausdorff
-spaces, this is interesting as projective objects are extremally disconnected:
+/-- If `α` has the discrete topology then `Ultrafilter α` is projective in the category of compact
+Hausdorff spaces, this is interesting as projective objects are extremally disconnected:
 closures of open sets are open. -/
 theorem Ultrafilter.projective : CompactT2.Projective (Ultrafilter α) := by
   intro X Y _ _ _ _ _ _ f g hf hg hsurj
@@ -275,13 +269,7 @@ noncomputable def Index.homeomorphClosure (S : Index) (h : IsDiscrete S.val) : U
     intro F G
     apply (@not_imp_not (F = G) _).mp
     intro hne
-    rw [Ultrafilter.ext_iff] at hne
-    have ⟨s, hF, hG⟩ : ∃ s, s ∈ F ∧ sᶜ ∈ G := by
-      push Not at hne
-      have ⟨s, hs⟩ := hne
-      rcases hs with h' | h'
-      · exact ⟨s, h'.left, Ultrafilter.compl_mem_iff_notMem.mpr h'.right⟩
-      · exact ⟨sᶜ, Ultrafilter.compl_mem_iff_notMem.mpr h'.left, (compl_compl s).symm ▸ h'.right⟩
+    have ⟨s, hF, hG⟩ : ∃ s, s ∈ F ∧ sᶜ ∈ G := Ultrafilter.exists_mem_compl_mem_of_ne hne
     have hs : (f '' s).Countable := Countable.image (to_countable s) f
     have hsc : (f '' sᶜ).Countable := Countable.image (to_countable sᶜ) f
     have (t : Set ℕ) : f '' tᶜ = S.val \ (f '' t) := by
@@ -346,13 +334,6 @@ theorem Index.mk_ultrafilter_eq_mk_closure (S : Index) : #(Ultrafilter ℕ) = #(
   · rw [(Index.homeomorphClosure T hT).toEquiv.cardinal_eq]
     exact mk_le_mk_of_subset (closure_mono hST)
   · exact mk_set_le (closure S.val)
-
-/-- `βℕ` has cardinality `2 ^ 𝔠`. -/
-theorem mk_ultrafilter_nat : #(Ultrafilter ℕ) = 2^((2 : Cardinal)^ℵ₀) := by sorry
-
-/-- The family of countably infinite subsets of `βℕ` has cardinality `2 ^ 𝔠`. -/
-theorem mk_index : #Index = #(Ultrafilter ℕ) := by
-  sorry
 
 /-- The index family transported to a well-ordered type of the same cardinality,
 so that the recursion `pick` can run over its initial segments. -/
