@@ -181,6 +181,8 @@ theorem mk_iInter_countFam {F : Finset PNOrd} (g : F → PNOrd) :
   congr
   grind
 
+/-- A set `S` whose finite subsets all have infinite intersection extends to a nonprincipal
+ultrafilter. -/
 theorem exists_hyperfilter_of_finite_inter_infinite {α : Type*} (S : Set (Set α)) (cond : ∀ T : Finset (Set α), (↑T : Set (Set α)) ⊆ S → (⋂₀ (↑T : Set (Set α))).Infinite) :
     ∃ F : Ultrafilter α, S ⊆ F.sets ∧ (F : Filter α) ≤ cofinite := by
   have h : ∀ T : Finset (Set α), (↑T : Set (Set α)) ⊆ (S ∪ {{x}ᶜ | x : α}) → (⋂₀ (↑T : Set (Set α))).Nonempty := by
